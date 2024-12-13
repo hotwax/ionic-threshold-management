@@ -1,6 +1,7 @@
 import api from '@/api';
 import logger from '@/logger';
 import { hasError } from '@/utils';
+import { DateTime } from "luxon";
 
 const fetchRuleGroup = async (payload: any): Promise <any>  => {
   return api({
@@ -39,6 +40,25 @@ const createRuleGroup = async (payload: any): Promise <any>  => {
   return Promise.resolve(ruleGroup);
 }
 
+const updateRuleGroup = async (ruleGroupId: string, payload: any): Promise <any>  => {
+  try {
+    const resp = await api({
+      url: `ruleGroups/${ruleGroupId}`,
+      method: "POST",
+      data: payload
+    }) as any;
+
+    if(!hasError(resp)) {
+      return Promise.resolve(resp);
+    } else {
+      throw resp.data
+    }
+  } catch(err: any) {
+    logger.error(err)
+    return Promise.reject("Failed to update rule group");
+  }
+}
+
 const createRule = async (payload: any): Promise <any>  => {
   let rule = {}
   try {
@@ -69,6 +89,7 @@ const updateRule = async (payload: any, ruleId: string): Promise <any>  => {
     }) as any;
     
     if(!hasError(resp)) {
+      updateRuleGroup(payload.ruleGroupId, {lastModifiedDate: DateTime.now().toMillis()})
       return Promise.resolve(resp)
     } else {
       throw resp.data
@@ -126,5 +147,6 @@ export const RuleService = {
   fetchRuleScheduleInformation,
   runNow,
   scheduleRuleGroup,
-  updateRule
+  updateRule,
+  updateRuleGroup
 }
